@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organisation — Agenda & Courses</title>
+
+<!-- Google Font professionnelle -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* -------- GLOBAL -------- */
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #eef1f7;
+        margin: 0;
+        color: #1f2a44;
+    }
+    header {
+        background: linear-gradient(135deg, #4662ff, #6f8dff);
+        padding: 28px;
+        text-align: center;
+        color: white;
+        font-size: 26px;
+        font-weight: 700;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+        letter-spacing: 0.5px;
+    }
+
+    /* -------- NAVIGATION -------- */
+    nav {
+        display: flex;
+        background: white;
+        border-bottom: 1px solid #d8dced;
+    }
+
+    nav button {
+        flex: 1;
+        padding: 18px;
+        font-size: 18px;
+        background: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    nav button.active {
+        color: #4662ff;
+        border-bottom: 4px solid #4662ff;
+        background: #f6f7ff;
+    }
+
+    /* -------- PAGES -------- */
+    .page {
+        display: none;
+        padding: 25px;
+        max-width: 900px;
+        margin: auto;
+    }
+    .page.active {
+        display: block;
+    }
+
+    /* -------- CARDS -------- */
+    .card {
+        background: white;
+        padding: 20px;
+        margin-bottom: 25px;
+        border-radius: 14px;
+        box-shadow: 0px 8px 20px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+        margin-top: 0;
+        color: #2c3b65;
+        font-weight: 700;
+        font-size: 22px;
+    }
+
+    /* -------- INPUTS -------- */
+    input {
+        width: 100%;
+        padding: 14px;
+        margin-top: 8px;
+        border-radius: 10px;
+        border: 1px solid #cdd5e0;
+        font-size: 16px;
+    }
+
+    button.add {
+        width: 100%;
+        margin-top: 14px;
+        padding: 14px;
+        background: #4662ff;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 17px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    button.add:hover {
+        background: #2f4dff;
+    }
+
+    /* -------- LISTES -------- */
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        background: #eef2ff;
+        margin-bottom: 12px;
+        padding: 15px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+    }
+
+    li button {
+        background: #ff4d4d;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+</style>
+</head>
+<body>
+
+<header>Organisation de Maman</header>
+
+<nav>
+    <button class="active" onclick="showPage('agenda')">📅 Agenda</button>
+    <button onclick="showPage('courses')">🛒 Courses</button>
+</nav>
+
+<!-- -------- PAGE AGENDA -------- -->
+<div id="agenda" class="page active">
+
+    <div class="card">
+        <h2>Ajouter un rendez-vous</h2>
+
+        <label>Date :</label>
+        <input type="date" id="rdvDate">
+
+        <label>Description :</label>
+        <input type="text" id="rdvText" placeholder="Ex : Rendez-vous médecin à 16h">
+
+        <button class="add" onclick="addRdv()">Ajouter le rendez-vous</button>
+    </div>
+
+    <div class="card">
+        <h2>Mes rendez-vous</h2>
+        <ul id="rdvList"></ul>
+    </div>
+
+</div>
+
+<!-- -------- PAGE COURSES -------- -->
+<div id="courses" class="page">
+
+    <div class="card">
+        <h2>Ajouter un article</h2>
+        <input type="text" id="itemText" placeholder="Ex : Lait demi-écrémé">
+        <button class="add" onclick="addItem()">Ajouter</button>
+    </div>
+
+    <div class="card">
+        <h2>Liste de courses</h2>
+        <ul id="itemList"></ul>
+    </div>
+
+</div>
+
+<script>
+/* -------- NAVIGATION -------- */
+function showPage(id) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+}
+
+/* -------- AGENDA -------- */
+let rdvs = JSON.parse(localStorage.getItem("rdvs") || "[]");
+function saveRdvs() { localStorage.setItem("rdvs", JSON.stringify(rdvs)); }
+
+function addRdv() {
+    const date = document.getElementById("rdvDate").value;
+    const text = document.getElementById("rdvText").value;
+
+    if (!date || !text) return alert("Complète la date et la description.");
+
+    rdvs.push({ date, text });
+    saveRdvs();
+    loadRdvs();
+}
+
+function loadRdvs() {
+    const ul = document.getElementById("rdvList");
+    ul.innerHTML = "";
+    rdvs.forEach((r, i) => {
+        ul.innerHTML += `
+            <li>
+                <div>
+                    <strong>${new Date(r.date).toLocaleDateString("fr-FR")}</strong><br>
+                    ${r.text}
+                </div>
+                <button onclick="removeRdv(${i})">X</button>
+            </li>
+        `;
+    });
+}
+
+function removeRdv(i) {
+    rdvs.splice(i, 1);
+    saveRdvs();
+    loadRdvs();
+}
+
+/* -------- COURSES -------- */
+let items = JSON.parse(localStorage.getItem("items") || "[]");
+function saveItems() { localStorage.setItem("items", JSON.stringify(items)); }
+
+function addItem() {
+    const text = document.getElementById("itemText").value;
+    if (!text) return;
+    items.push(text);
+    saveItems();
+    loadItems();
+}
+
+function loadItems() {
+    const ul = document.getElementById("itemList");
+    ul.innerHTML = "";
+    items.forEach((t, i) => {
+        ul.innerHTML += `
+            <li>
+                ${t}
+                <button onclick="removeItem(${i})">X</button>
+            </li>
+        `;
+    });
+}
+
+function removeItem(i) {
+    items.splice(i, 1);
+    saveItems();
+    loadItems();
+}
+
+/* Chargement initial */
+loadRdvs();
+loadItems();
+</script>
+
+</body>
+</html>
